@@ -19,7 +19,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let cart = [];
 
     // DOM элементы
-    const productElements = document.querySelectorAll('.product');
+    const productsContainer = document.querySelector('.products');
     const categoryLinks = document.querySelectorAll('.categories a');
     const openCartButton = document.getElementById('openCart');
     const closeButtons = document.querySelectorAll('.close-popup');
@@ -30,6 +30,60 @@ document.addEventListener('DOMContentLoaded', function() {
     const checkoutForm = document.getElementById('checkoutForm');
     const addToCartButton = document.querySelector('.add-to-cart');
     const closeOrderButton = document.querySelector('.close-order');
+
+    // Генерация продуктов
+    function generateProducts() {
+        productsContainer.innerHTML = '';
+        
+        products.forEach((product, index) => {
+            const productElement = document.createElement('div');
+            productElement.className = 'product';
+            productElement.setAttribute('data-category', product.category);
+            
+            // Установка уникального цвета фона для каждого продукта
+            const hue = (index * 30) % 360;
+            
+            productElement.innerHTML = `
+                <div class="product-image" style="background-color: hsl(${hue}, 20%, 85%)"></div>
+                <h3>${product.name}</h3>
+                <p>${product.price} РУБ.</p>
+            `;
+            
+            productsContainer.appendChild(productElement);
+        });
+        
+        // Добавляем обработчики событий для новых элементов продуктов
+        addProductEventListeners();
+    }
+
+    // Добавление обработчиков событий для продуктов
+    function addProductEventListeners() {
+        const productElements = document.querySelectorAll('.product');
+        
+        productElements.forEach((product, index) => {
+            product.addEventListener('click', function() {
+                const productIndex = index % products.length;
+                const currentProduct = products[productIndex];
+                
+                // Обновление содержимого попапа
+                document.querySelector('.product-purchase h3').textContent = currentProduct.name;
+                document.querySelector('.product-purchase p').textContent = currentProduct.price + ' РУБ.';
+                
+                // Установка цвета фона для изображения в попапе
+                const hue = (index * 30) % 360;
+                document.querySelector('.product-image-large').style.backgroundColor = `hsl(${hue}, 20%, 85%)`;
+                
+                // Установка ID продукта для кнопки добавления в корзину
+                addToCartButton.setAttribute('data-product-id', currentProduct.id);
+                
+                // Открытие попапа
+                openPopup(productPopup);
+            });
+        });
+    }
+
+    // Инициализация продуктов
+    generateProducts();
 
     // Фильтрация категорий
     categoryLinks.forEach(link => {
@@ -45,6 +99,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const category = this.getAttribute('data-category');
             
             // Показать/скрыть продукты в зависимости от категории
+            const productElements = document.querySelectorAll('.product');
             productElements.forEach(product => {
                 const productCategory = product.getAttribute('data-category');
                 
@@ -54,29 +109,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     product.style.display = 'none';
                 }
             });
-        });
-    });
-
-    // Открыть попап продукта при клике на продукт
-    productElements.forEach((product, index) => {
-        product.addEventListener('click', function() {
-            // Установить текущие данные продукта (в реальном приложении, берём из сервера)
-            const productIndex = index % products.length;
-            const currentProduct = products[productIndex];
-            
-            // Обновить содержимое попапа с данными продукта
-            document.querySelector('.product-purchase h3').textContent = currentProduct.name;
-            document.querySelector('.product-purchase p').textContent = currentProduct.price + ' РУБ.';
-            
-            // Установить разные цвета фона для каждого продукта, чтобы их можно было отличить
-            const hue = (index * 30) % 360;
-            document.querySelector('.product-image-large').style.backgroundColor = `hsl(${hue}, 20%, 85%)`;
-            
-            // Хранит ID продукта для функционала добавления в корзину
-            addToCartButton.setAttribute('data-product-id', currentProduct.id);
-            
-            // Показать попап
-            openPopup(productPopup);
         });
     });
 
