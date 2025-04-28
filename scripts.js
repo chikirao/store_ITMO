@@ -3,7 +3,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const products = [
         { id: 1, name: 'НАЗВАНИЕ', price: 1000, category: 'top' },
         { id: 2, name: 'НАЗВАНИЕ', price: 1000, category: 'top' },
-        { id: 3, name: 'НАЗВАНИЕ', price: 1000, category: 'bottom' },
+        { id: 3, name: 'НАЗВАНИЕ2', price: 1090, category: 'bottom' },
         { id: 4, name: 'НАЗВАНИЕ', price: 1000, category: 'headwear' },
         { id: 5, name: 'НАЗВАНИЕ', price: 1000, category: 'accessories' },
         { id: 6, name: 'НАЗВАНИЕ', price: 1000, category: 'top' },
