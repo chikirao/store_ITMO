@@ -6,7 +6,7 @@ from rest_framework.permissions import AllowAny
 from django.shortcuts import get_object_or_404
 from products.models import Product, ProductSize
 from .models import Cart, CartItem, Order, OrderItem
-from .serializers import CartSerializer, CartItemSerializer, OrderSerializer, OrderItemSerializer
+from .serializers import CartSerializer, CartItemSerializer, OrderSerializer, OrderItemSerializer, CartItemCreateSerializer
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import serializers
 from rest_framework.views import APIView
@@ -20,6 +20,10 @@ class CartViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         if self.request.user.is_authenticated:
+            # Очищаем старые корзины - оставляем только одну последнюю
+            carts = Cart.objects.filter(user=self.request.user).order_by('-created_at')
+            if carts.count() > 1:
+                carts.exclude(id=carts.first().id).delete()
             return Cart.objects.filter(user=self.request.user)
         
         # Для неавторизованных пользователей используем сессии
@@ -28,6 +32,11 @@ class CartViewSet(viewsets.ModelViewSet):
             self.request.session.save()
             session_id = self.request.session.session_key
             
+        # Очищаем старые корзины для сессии
+        carts = Cart.objects.filter(session_id=session_id).order_by('-created_at')
+        if carts.count() > 1:
+            carts.exclude(id=carts.first().id).delete()
+        
         # Получаем или создаем корзину для текущей сессии
         cart, created = Cart.objects.get_or_create(
             session_id=session_id,
@@ -52,6 +61,8 @@ class CartViewSet(viewsets.ModelViewSet):
         return cart
 
     def perform_create(self, serializer):
+        # Этот метод не будет вызван при использовании CartItemCreateSerializer,
+        # так как он определяет свой метод create
         if self.request.user.is_authenticated:
             serializer.save(user=self.request.user)
         else:
@@ -119,6 +130,12 @@ class CartViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_404_NOT_FOUND
             )
 
+    # Добавляем пример запроса для документации API
+    def get_serializer_class(self):
+        if self.request.method == 'POST':
+            return CartItemCreateSerializer
+        return self.serializer_class
+
 class OrderViewSet(viewsets.ModelViewSet):
     serializer_class = OrderSerializer
     permission_classes = [AllowAny]
@@ -149,7 +166,10 @@ class OrderViewSet(viewsets.ModelViewSet):
         # Получаем корзину в зависимости от того, авторизован пользователь или нет
         if self.request.user.is_authenticated:
             try:
-                cart = Cart.objects.get(user=self.request.user)
+                # Берем последнюю корзину пользователя
+                cart = Cart.objects.filter(user=self.request.user).order_by('-created_at').first()
+                if not cart:
+                    raise Cart.DoesNotExist
             except Cart.DoesNotExist:
                 raise serializers.ValidationError("Корзина не найдена")
         else:
@@ -158,7 +178,10 @@ class OrderViewSet(viewsets.ModelViewSet):
                 raise serializers.ValidationError("Сессия не найдена")
             
             try:
-                cart = Cart.objects.get(session_id=session_id)
+                # Берем последнюю корзину для сессии
+                cart = Cart.objects.filter(session_id=session_id).order_by('-created_at').first()
+                if not cart:
+                    raise Cart.DoesNotExist
             except Cart.DoesNotExist:
                 raise serializers.ValidationError("Корзина не найдена")
         
