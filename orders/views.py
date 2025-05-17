@@ -206,11 +206,13 @@ class OrderViewSet(viewsets.ModelViewSet):
         if self.request.user.is_authenticated:
             order = serializer.save(
                 user=self.request.user,
-                total_amount=sum(item.product.price * item.quantity for item in cart_items)
+                total_amount=sum(item.product.price * item.quantity for item in cart_items),
+                total_items=sum(item.quantity for item in cart_items)
             )
         else:
             order = serializer.save(
-                total_amount=sum(item.product.price * item.quantity for item in cart_items)
+                total_amount=sum(item.product.price * item.quantity for item in cart_items),
+                total_items=sum(item.quantity for item in cart_items)
             )
 
         # Создаем элементы заказа из корзины и обновляем запасы

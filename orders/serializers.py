@@ -52,15 +52,17 @@ class OrderSerializer(serializers.ModelSerializer):
     address = serializers.CharField(help_text="Адрес доставки")
     city = serializers.CharField(help_text="Город доставки")
     postal_code = serializers.CharField(help_text="Почтовый индекс")
+    total_items = serializers.IntegerField(read_only=True, help_text="Общее количество товаров в заказе")
+    total_amount = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True, help_text="Общая стоимость заказа")
 
     class Meta:
         model = Order
         fields = [
             'id', 'order_number', 'tracking_url', 'user', 'email', 'first_name', 'last_name',
-            'phone', 'address', 'city', 'postal_code', 'status', 'total_amount',
+            'phone', 'address', 'city', 'postal_code', 'status', 'total_amount', 'total_items',
             'payment_status', 'items', 'created_at', 'updated_at'
         ]
-        read_only_fields = ['order_number', 'tracking_url', 'user', 'payment_status']
+        read_only_fields = ['order_number', 'tracking_url', 'user', 'payment_status', 'total_amount', 'total_items']
 
 class CartItemCreateSerializer(serializers.Serializer):
     product_id = serializers.PrimaryKeyRelatedField(
