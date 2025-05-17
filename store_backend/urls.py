@@ -28,4 +28,13 @@ urlpatterns = [
     
     # Страницы сайта
     path('', include('pages.urls')),
-] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+]
+
+# Добавляем обработку статических файлов и медиа в режиме разработки
+if settings.DEBUG:
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+else:
+    # В продакшене статические файлы должны обрабатываться веб-сервером,
+    # но для медиа добавляем обработку и в продакшене
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
