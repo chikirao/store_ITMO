@@ -94,7 +94,17 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log('Debug - Products data:', data);
             
             // Проверяем, является ли ответ пагинированным (содержит поле results)
-            return data.results ? data.results : data;
+            const products = data.results ? data.results : data;
+            
+            // Добавляем slug, если его нет (на случай неполных данных)
+            products.forEach(product => {
+                if (!product.slug) {
+                    // Генерируем временный slug на основе ID, чтобы избежать ошибок
+                    product.slug = `product-${product.id}`;
+                }
+            });
+            
+            return products;
         } catch (error) {
             console.error('Ошибка при загрузке продуктов:', error);
             // Возвращаем демо-продукты в случае ошибки
@@ -195,6 +205,7 @@ document.addEventListener('DOMContentLoaded', function() {
             productElement.className = 'product';
             productElement.setAttribute('data-category', product.category ? product.category.name : 'unknown');
             productElement.setAttribute('data-id', product.id);
+            productElement.setAttribute('data-slug', product.slug);
             
             // Установка уникального цвета фона для каждого продукта
             const hue = (index * 30) % 360;
@@ -253,12 +264,25 @@ document.addEventListener('DOMContentLoaded', function() {
         productElements.forEach((productElement) => {
             productElement.addEventListener('click', function() {
                 const productId = parseInt(this.getAttribute('data-id'));
+                const productSlug = this.getAttribute('data-slug');
                 const currentProduct = products.find(p => p.id === productId);
                 
-                if (!currentProduct) return;
+                if (!currentProduct) {
+                    console.error('Product not found:', productId);
+                    return;
+                }
+                
+                console.log('Debug - Clicked product:', { id: productId, slug: productSlug, product: currentProduct });
                 
                 // Получаем полную информацию о продукте с сервера
-                fetchProductById(productId).then(product => {
+                fetchProductById(productId, productSlug).then(product => {
+                    if (!product) {
+                        console.error('Failed to fetch product details');
+                        return;
+                    }
+                    
+                    console.log('Debug - Fetched product details:', product);
+                    
                     // Обновление содержимого попапа
                     document.querySelector('.product-purchase h3').textContent = product.name;
                     document.querySelector('.product-purchase p').textContent = product.price + ' РУБ.';
@@ -276,8 +300,27 @@ document.addEventListener('DOMContentLoaded', function() {
                         productImageEl.style.backgroundImage = '';
                     }
                     
-                    // Установка ID продукта для кнопки добавления в корзину
+                    // Обновляем описание продукта в блоке характеристик
+                    const specsContent = document.querySelector('.specs-content');
+                    if (specsContent && product.description) {
+                        // Разделяем описание на абзацы по строкам
+                        const paragraphs = product.description.split('\n').filter(line => line.trim() !== '');
+                        
+                        // Преобразуем каждую строку в абзац и добавляем в блок характеристик
+                        specsContent.innerHTML = paragraphs.map(para => `<p>${para}</p>`).join('');
+                        
+                        // Если описание пустое, показываем сообщение
+                        if (paragraphs.length === 0) {
+                            specsContent.innerHTML = '<p>Нет описания</p>';
+                        }
+                    } else {
+                        // Если нет описания, показываем сообщение
+                        specsContent.innerHTML = '<p>Нет описания</p>';
+                    }
+                    
+                    // Установка ID и slug продукта для кнопки добавления в корзину
                     addToCartButton.setAttribute('data-product-id', product.id);
+                    addToCartButton.setAttribute('data-product-slug', product.slug);
                     
                     // Добавляем выбор размера, если он есть
                     if (product.sizes && product.sizes.length > 0) {
@@ -297,10 +340,18 @@ document.addEventListener('DOMContentLoaded', function() {
                             priceElement.nextElementSibling.remove();
                         }
                         priceElement.after(sizeContainer);
+                    } else {
+                        // Удаляем селект размеров, если он есть
+                        const existingSizeSelection = document.querySelector('.size-selection');
+                        if (existingSizeSelection) {
+                            existingSizeSelection.remove();
+                        }
                     }
                     
                     // Открытие попапа
                     openPopup(productPopup);
+                }).catch(error => {
+                    console.error('Error fetching product:', error);
                 });
             });
         });
@@ -321,9 +372,13 @@ document.addEventListener('DOMContentLoaded', function() {
     if (addToCartButton) {
         addToCartButton.addEventListener('click', function() {
             const productId = parseInt(this.getAttribute('data-product-id'));
+            // Попробуем получить slug из атрибута, если он был установлен
+            const productSlug = this.getAttribute('data-product-slug');
+            
+            console.log('Debug - Adding to cart. Product ID:', productId, 'Slug:', productSlug);
             
             // Получаем продукт с сервера или из локального кэша
-            fetchProductById(productId).then(product => {
+            fetchProductById(productId, productSlug).then(product => {
                 if (product) {
                     // Получаем выбранный размер (если есть)
                     let sizeId, sizeName;
@@ -356,7 +411,8 @@ document.addEventListener('DOMContentLoaded', function() {
                                 id: product.id,
                                 name: product.name,
                                 price: product.price,
-                                image: product.image
+                                image: product.image,
+                                slug: product.slug // Сохраняем slug для дальнейшего использования
                             },
                             size: {
                                 id: sizeId,
@@ -374,23 +430,64 @@ document.addEventListener('DOMContentLoaded', function() {
                     updateCartDisplay();
                     openPopup(cartPopup);
                 }
+            }).catch(error => {
+                console.error('Error adding product to cart:', error);
             });
         });
     }
 
     // Получить продукт по ID
-    async function fetchProductById(id) {
+    async function fetchProductById(id, slug) {
         try {
-            const response = await fetch(`${PRODUCTS_API}${id}/`);
+            // Если slug доступен и не пустой, используем его для запроса
+            const url = (slug && slug !== 'undefined') ? `${PRODUCTS_API}${slug}/` : `${PRODUCTS_API}${id}/`;
+            console.log('Debug - Fetching product details from:', url);
+            
+            const response = await fetch(url);
             if (!response.ok) {
                 throw new Error(`Ошибка HTTP: ${response.status}`);
             }
-            return await response.json();
+            
+            const data = await response.json();
+            console.log('Debug - Product details received:', data);
+            
+            // Убедимся, что у продукта есть все необходимые свойства
+            if (!data.sizes) data.sizes = [];
+            if (!data.image) data.image = '';
+            
+            return data;
         } catch (error) {
             console.error(`Ошибка при загрузке продукта с ID ${id}:`, error);
-            // В случае ошибки ищем продукт в демо-данных
+            
+            // В случае ошибки ищем продукт в общем списке продуктов
+            try {
+                const productsResponse = await fetch(PRODUCTS_API);
+                if (productsResponse.ok) {
+                    const allProductsData = await productsResponse.json();
+                    const allProducts = allProductsData.results || allProductsData;
+                    const product = allProducts.find(p => p.id === id);
+                    if (product) {
+                        // Убедимся, что у продукта есть все необходимые свойства
+                        if (!product.sizes) product.sizes = [];
+                        if (!product.image) product.image = '';
+                        return product;
+                    }
+                }
+            } catch (e) {
+                console.error('Ошибка при поиске продукта в общем списке:', e);
+            }
+            
+            // В качестве последнего варианта используем демо-данные
             const demoProducts = getDemoProducts();
-            return demoProducts.find(p => p.id === id);
+            const demoProduct = demoProducts.find(p => p.id === id);
+            
+            // Убедимся, что у продукта есть все необходимые свойства
+            if (demoProduct) {
+                if (!demoProduct.sizes) demoProduct.sizes = [];
+                if (!demoProduct.image) demoProduct.image = '';
+            }
+            
+            return demoProduct;
         }
     }
 
@@ -699,4 +796,4 @@ document.addEventListener('DOMContentLoaded', function() {
             this.style.border = '';
         });
     });
-}); 
+});
