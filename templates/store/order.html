@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Заказ №{{ order.order_number }} - БОМЖ ЖИВ</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght@8..144,300;8..144,400;8..144,500;8..144,600&display=swap" rel="stylesheet">
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">
+                <a href="{% url 'home' %}">БОМЖ<br>ЖИВ</a>
+            </div>
+            <div class="cart-button">
+                <a href="{% url 'home' %}">КОРЗИНА</a>
+            </div>
+        </header>
+
+        <div class="order-details-container">
+            <div class="order-details">
+                <div class="order-header">
+                    <h2>ЗАКАЗ №{{ order.order_number }}</h2>
+                    <span class="close-order">&times;</span>
+                </div>
+                
+                <div class="order-section">
+                    <h3>ИНФОРМАЦИЯ</h3>
+                    <div class="order-info-grid">
+                        <div class="info-label">Дата оформления</div>
+                        <div class="info-value">{{ order.created_at|date:"d.m.Y H:i" }}</div>
+                        
+                        <div class="info-label">Сумма</div>
+                        <div class="info-value">{{ order.total_amount }} РУБ.</div>
+                        
+                        <div class="info-label">Способ оплаты</div>
+                        <div class="info-value">FastPayments</div>
+                        
+                        <div class="info-label">Способ доставки</div>
+                        <div class="info-value">{{ order.delivery_method_display }}</div>
+                        
+                        <div class="info-label">Адрес доставки</div>
+                        <div class="info-value">{{ order.city }}</div>
+                        
+                        <div class="info-label">Получатель</div>
+                        <div class="info-value">{{ order.first_name }} {{ order.last_name }} {{ order.phone }}</div>
+                        
+                        <div class="info-label">Почта</div>
+                        <div class="info-value">{{ order.email }}</div>
+                    </div>
+                </div>
+                
+                <div class="order-section">
+                    <h3>СТАТУС</h3>
+                    <div class="order-status">
+                        <div class="status-item">{% if order.payment_status %}ОПЛАЧЕНО{% else %}НЕ ОПЛАЧЕНО{% endif %}</div>
+                        {% if not order.payment_status %}
+                        <div class="pay-button">ОПЛАТИТЬ</div>
+                        {% endif %}
+                        <div class="status-item">ПРИНЯТ</div>
+                        <div class="status-item">{% if order.status == 'shipped' or order.status == 'delivered' %}ОТПРАВЛЕН{% else %}НЕ ОТПРАВЛЕН{% endif %}</div>
+                    </div>
+                </div>
+                
+                <div class="order-section">
+                    <h3>СОСТАВ ЗАКАЗА</h3>
+                    <div class="order-items">
+                        {% for item in order.items.all %}
+                        <div class="cart-item">
+                            <div class="cart-item-image"></div>
+                            <div class="cart-item-details">
+                                <h3>{{ item.product.name }}</h3>
+                                <div class="size">{{ item.size.size }}</div>
+                            </div>
+                            <div class="cart-item-price">{{ item.price }} РУБ.</div>
+                            <div class="cart-item-quantity">
+                                <span>{{ item.quantity }}</span>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <ul>
+                <li><a href="#">ИНФО</a></li>
+                <li><a href="#">ПОЛИТИКА</a></li>
+                <li><a href="#">УСЛОВИЯ ОБСЛУЖИВАНИЯ И ВОЗВРАТ</a></li>
+                <li><a href="#">ПОДДЕРЖКА</a></li>
+            </ul>
+        </footer>
+    </div>
+
+    {% load static %}
+    <script src="{% static 'js/scripts.js' %}"></script>
+</body>
+</html> 

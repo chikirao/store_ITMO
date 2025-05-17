@@ -43,6 +43,11 @@ class Order(models.Model):
         ('cancelled', 'Cancelled'),
     ]
 
+    DELIVERY_CHOICES = [
+        ('pickup', 'Самовывоз СДЭК'),
+        ('courier', 'Курьером СДЭК'),
+    ]
+
     order_number = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     tracking_url = models.CharField(max_length=250, blank=True, null=True, editable=False)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
@@ -54,6 +59,7 @@ class Order(models.Model):
     city = models.CharField(max_length=100)
     postal_code = models.CharField(max_length=20)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    delivery_method = models.CharField(max_length=20, choices=DELIVERY_CHOICES, default='pickup')
     total_amount = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     total_items = models.PositiveIntegerField(default=0, help_text="Общее количество товаров в заказе")
     payment_status = models.BooleanField(default=False)

@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>БОМЖ ЖИВ</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght@8..144,300;8..144,400;8..144,500;8..144,600&display=swap" rel="stylesheet">
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">
+                <a href="{% url 'home' %}">БОМЖ<br>ЖИВ</a>
+            </div>
+            <div class="cart-button">
+                <a href="#" id="openCart">КОРЗИНА</a>
+            </div>
+        </header>
+
+        <nav class="categories">
+            <ul>
+                <!-- Категории будут загружены через JavaScript -->
+            </ul>
+        </nav>
+
+        <!-- Продукты -->
+        <main class="products">
+            <!-- Продукты генерируются через JavaScript -->
+        </main>
+
+        <!-- Футер -->
+        <footer>
+            <ul>
+                <li><a href="#">ИНФО</a></li>
+                <li><a href="#">ПОЛИТИКА</a></li>
+                <li><a href="#">УСЛОВИЯ ОБСЛУЖИВАНИЯ И ВОЗВРАТ</a></li>
+                <li><a href="#">ПОДДЕРЖКА</a></li>
+            </ul>
+        </footer>
+    </div>
+
+    <!-- Попап продукта -->
+    <div class="popup-overlay" id="productPopup">
+        <div class="popup-content product-details">
+            <span class="close-popup">&times;</span>
+            <div class="product-info">
+                <div class="product-image-large"></div>
+                <div class="product-specs">
+                    <h2>ХАРАКТЕРИСТИКИ</h2>
+                    <div class="specs-content">
+                        <p>ХЛОПОК - 100%</p>
+                        <p>КРИТЕРИЙ - 29 Г.</p>
+                        <p>ИНГРЕДИЕНТ - 96 Н.</p>
+                        <p>&nbsp;</p>
+                        <p>НЕ СТИРАТЬ</p>
+                        <p>НЕ МОЧИТЬ</p>
+                        <p>НЕ ЛОМАТЬ</p>
+                    </div>
+                </div>
+            </div>
+            <div class="product-purchase">
+                <h3>НАЗВАНИЕ</h3>
+                <p>1000 РУБ.</p>
+                <button class="add-to-cart">ДОБАВИТЬ<br>В КОРЗИНУ</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Попап корзины -->
+    <div class="popup-overlay" id="cartPopup">
+        <div class="popup-content cart-details">
+            <span class="close-popup">&times;</span>
+            <h2>ВАШ ЗАКАЗ</h2>
+            <div class="cart-items">
+                <!-- Пустая корзина или товары через JavaScript -->
+            </div>
+            <div class="cart-actions">
+                <button class="clear-cart-button" id="clearCartButton">ОЧИСТИТЬ КОРЗИНУ</button>
+                <button class="checkout-button" id="checkoutButton">ОФОРМИТЬ</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Попап оформления заказа -->
+    <div class="popup-overlay" id="checkoutPopup">
+        <div class="popup-content checkout-details">
+            <span class="close-popup">&times;</span>
+            <h2>ОФОРМЛЕНИЕ<br>ЗАКАЗА</h2>
+            
+            <form id="checkoutForm">
+                <input type="text" name="first_name" placeholder="Имя" required>
+                <input type="tel" name="phone" placeholder="Телефон" required>
+                <input type="email" name="email" placeholder="Почта" required>
+                <input type="text" name="promo" placeholder="Промокод">
+                
+                <h3>ДОСТАВКА</h3>
+                <input type="text" name="city" placeholder="Населенный пункт" required>
+                
+                <div class="delivery-option">
+                    <label class="radio-container">
+                        <input type="radio" name="delivery" value="pickup" checked>
+                        <span class="radio-custom"></span>
+                        <div class="delivery-info">
+                            <div>Самовывоз СДЭК</div>
+                            <div class="delivery-subtext">Выбрать на карте</div>
+                        </div>
+                        <div class="delivery-price">200 РУБ.</div>
+                    </label>
+                </div>
+                
+                <div class="delivery-option">
+                    <label class="radio-container">
+                        <input type="radio" name="delivery" value="courier">
+                        <span class="radio-custom"></span>
+                        <div class="delivery-info">
+                            <div>Курьером СДЭК</div>
+                            <div class="delivery-subtext">1-3 раб. дня</div>
+                        </div>
+                        <div class="delivery-price">400 РУБ.</div>
+                    </label>
+                </div>
+                
+                <h3>СПОСОБ ОПЛАТЫ</h3>
+                <div class="payment-option">
+                    <label class="radio-container">
+                        <input type="radio" name="payment" value="fastpayments" checked>
+                        <span class="radio-custom"></span>
+                        <div>FastPayments</div>
+                    </label>
+                </div>
+                
+                <div class="consent-option">
+                    <label class="checkbox-container">
+                        <input type="checkbox" required checked>
+                        <span class="checkbox-custom"></span>
+                        <div>
+                            <div>Согласие на обработку персональных данных.</div>
+                            <div class="consent-subtext">Я ознакомлен и согласен с условиями оферты и политики конфиденциальности.</div>
+                        </div>
+                    </label>
+                </div>
+                
+                <div class="checkout-cart">
+                    <h3>КОРЗИНА</h3>
+                    <div class="checkout-items">
+                        <!-- Корзина через JavaScript -->
+                    </div>
+                </div>
+                
+                <button type="submit" class="checkout-button">ОФОРМИТЬ</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Скрипты -->
+    <script src="{% static 'js/scripts.js' %}"></script>
+</body>
+</html> 

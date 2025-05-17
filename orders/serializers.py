@@ -45,6 +45,7 @@ class OrderItemSerializer(serializers.ModelSerializer):
 class OrderSerializer(serializers.ModelSerializer):
     items = OrderItemSerializer(many=True, read_only=True)
     status = serializers.ChoiceField(choices=Order.STATUS_CHOICES, default='pending')
+    delivery_method = serializers.ChoiceField(choices=Order.DELIVERY_CHOICES, default='pickup')
     email = serializers.EmailField(help_text="Email для связи и отправки информации о заказе")
     first_name = serializers.CharField(help_text="Имя заказчика")
     last_name = serializers.CharField(help_text="Фамилия заказчика")
@@ -59,8 +60,8 @@ class OrderSerializer(serializers.ModelSerializer):
         model = Order
         fields = [
             'id', 'order_number', 'tracking_url', 'user', 'email', 'first_name', 'last_name',
-            'phone', 'address', 'city', 'postal_code', 'status', 'total_amount', 'total_items',
-            'payment_status', 'items', 'created_at', 'updated_at'
+            'phone', 'address', 'city', 'postal_code', 'status', 'delivery_method',
+            'total_amount', 'total_items', 'payment_status', 'items', 'created_at', 'updated_at'
         ]
         read_only_fields = ['order_number', 'tracking_url', 'user', 'payment_status', 'total_amount', 'total_items']
 

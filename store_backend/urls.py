@@ -25,4 +25,7 @@ urlpatterns = [
     path('api/orders/', include('orders.urls')),
     path('api/users/', include('users.urls')),
     path('api-auth/', include('rest_framework.urls')),
+    
+    # Страницы сайта
+    path('', include('pages.urls')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
