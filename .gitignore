@@ -282,7 +282,7 @@ mediafiles/
 uploads/
 
 # Static files
-static/
+# Исключаем только сгенерированные статические файлы
 staticfiles/
 
 # Local development settings
